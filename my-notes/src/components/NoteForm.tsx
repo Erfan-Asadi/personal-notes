@@ -1,33 +1,32 @@
-import { useRef } from "react";
+import { SyntheticEvent, useRef, useState } from "react";
 import { Form, Stack, Col, Row, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import CreatableReactSelect from "react-select/creatable";
-import { NoteData } from "../App";
+import { NoteData, Tag } from "../App";
 
 type NoteFormProps = {
   onSubmit: (data: NoteData) => void;
 };
 
+const defaultOptions = [
+  { value: "css", label: "CSS" },
+  { value: "html", label: "HTML" },
+  { value: "js", label: "JS" },
+  { value: "homework", label: "Homework" },
+];
 const NoteForm = ({ onSubmit }: NoteFormProps) => {
   const titleRef = useRef<HTMLInputElement>(null);
   const markdownRef = useRef<HTMLTextAreaElement>(null);
-
-  let defaultOptions = [
-    { value: "css", label: "CSS" },
-    { value: "html", label: "HTML" },
-    { value: "js", label: "JS" },
-    { value: "homework", label: "Homework" },
-  ];
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
     onSubmit({
-        title: titleRef.current!.value,
-        markdown: markdownRef.current!.value,
-        tags: []
-    })
-
+      title: titleRef.current!.value,
+      markdown: markdownRef.current!.value,
+      tags: [],
+    });
   };
   return (
     <Form onSubmit={handleSubmit}>
@@ -42,7 +41,20 @@ const NoteForm = ({ onSubmit }: NoteFormProps) => {
           <Col>
             <Form.Group controlId="tags">
               <Form.Label>Tags</Form.Label>
-              <CreatableReactSelect isMulti options={defaultOptions} />
+              <CreatableReactSelect
+                value={selectedTags.map((tag) => {
+                  return { label: tag.label, value: tag.id };
+                })}
+                onChange={(tags) => {
+                  setSelectedTags(
+                    tags.map((tag) => {
+                      return { label: tag.label, id: tag.value };
+                    })
+                  );
+                }}
+                options={defaultOptions}
+                isMulti
+              />
             </Form.Group>
           </Col>
         </Row>
