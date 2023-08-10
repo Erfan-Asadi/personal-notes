@@ -1,23 +1,21 @@
 import { SyntheticEvent, useRef, useState } from "react";
 import { Form, Stack, Col, Row, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CreatableReactSelect from "react-select/creatable";
 import { NoteData, Tag } from "../App";
+import { v4 as uuid } from "uuid";
 
 type NoteFormProps = {
   onSubmit: (data: NoteData) => void;
+  onAddTag: (tag: Tag) => void;
+  availableTags: Tag[];
 };
 
-const defaultOptions = [
-  { value: "css", label: "CSS" },
-  { value: "html", label: "HTML" },
-  { value: "js", label: "JS" },
-  { value: "homework", label: "Homework" },
-];
-const NoteForm = ({ onSubmit }: NoteFormProps) => {
+const NoteForm = ({ onSubmit, onAddTag, availableTags }: NoteFormProps) => {
   const titleRef = useRef<HTMLInputElement>(null);
   const markdownRef = useRef<HTMLTextAreaElement>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -25,9 +23,11 @@ const NoteForm = ({ onSubmit }: NoteFormProps) => {
     onSubmit({
       title: titleRef.current!.value,
       markdown: markdownRef.current!.value,
-      tags: [],
+      tags: selectedTags,
     });
+    navigate("..");
   };
+
   return (
     <Form onSubmit={handleSubmit}>
       <Stack gap={4}>
@@ -42,6 +42,11 @@ const NoteForm = ({ onSubmit }: NoteFormProps) => {
             <Form.Group controlId="tags">
               <Form.Label>Tags</Form.Label>
               <CreatableReactSelect
+                onCreateOption={(label) => {
+                  const newTag = { id: uuid(), label };
+                  onAddTag(newTag);
+                  setSelectedTags((prev) => [...prev, newTag]);
+                }}
                 value={selectedTags.map((tag) => {
                   return { label: tag.label, value: tag.id };
                 })}
@@ -52,7 +57,9 @@ const NoteForm = ({ onSubmit }: NoteFormProps) => {
                     })
                   );
                 }}
-                options={defaultOptions}
+                options={availableTags.map((tag) => {
+                  return { label: tag.label, value: tag.id };
+                })}
                 isMulti
               />
             </Form.Group>
